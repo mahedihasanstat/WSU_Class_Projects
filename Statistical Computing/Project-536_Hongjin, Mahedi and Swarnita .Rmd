@@ -1,0 +1,225 @@
+---
+title: "Project-Stat 536"
+author: "Hongjin, Mahedi and Swarnita"
+date: "12/6/2019"
+output: pdf_document
+---
+
+# Estimating the normal distribution parameters ($\mu$ and $\sigma^{2}$) from the censored data by using EM algorithm 
+
+
+# Introduction
+Often we face situation where the data are incomplete or censored but still our interest is to find the estimate of the parameter(s) from that incomplete data set. One such way to get the estimates of the parameter is the application of Expectation Maximization (EM) algorithm to the incomplete data set. In this work, we have applied EM algorithm to find the estimates of normal distribution parameters $\mu$ and $\sigma^{2}$ from a censored/incomplete data set. 
+
+# Description of Data
+The data set consists of $n = 45$ observations that comes from normal distribution with mean $\mu$ and variance $\sigma^{2}$. Suppose, $x_{1}, x_{2}......x_{n}$ observations are reported in the range $L_{i} \le x_{i} \le U_{i}$ where, $L_{i}$ and $U_{i}$ are known (but not necessarily finite). Here in this case, we have three types of observations, (i) the observation that is left censored, (ii) the observation that is right censored, and (iii) the observation that is confined in the interval ($L_{i}, U_{i}$).
+
+Where, 
+$$
+\begin{aligned}
+    A & = \{ i| U_{i} > L_{i} = -\infty \}\\
+    B & = \{ i| L_{i} < U_{i} = \infty \}\\
+    C & = \{ i| L_{i} < U_{i}, L_{i} \ne -\infty, U_{i} \ne \infty \}\\
+\end{aligned}
+$$
+
+Here, A idicates the observations that are left censored, B indicates the observations that are right censored and C indicates the observations that are confined between two limits. 
+
+This way, we have 14 observations that are left censored, 12 observations that are right censored,  and rest 19  were observed at different levels of intervals. 
+
+
+# Objective
+The objective of this study is to find the maximum likelihood estimates for the normal distribution parameters ($\mu$ and $\sigma^{2}$) from the censored data by using Expectation Maximization (EM) algorithm. 
+
+
+# Method
+Let $x_{1}, x_{2}......x_{n}$ be a random sample from $N \sim (\mu, \sigma^{2})$ and also let $Z_{i}$ is the latent variable. We have the conditional distribution $X_{i}|Z_{i}=k \sim N(\mu_{k}, \sigma^{2})$, so the marginal distribution of $X_{i}$ is:
+
+$$
+\begin{aligned}
+P(X_{i}=x) &= \sum_{k=1}^{k}P(Z_{i}=k) P(X_{i}=x|Z_{i}=k)\\
+          & =\sum_{k=1}^{k}\pi_{k}N(x; \mu_{k}, \sigma^{2}_{k})
+\end{aligned}
+$$
+
+Similarly, the joint probability of observations $x_{1}, x_{2}, ......x_{n}$ is therefore, \
+$$
+\begin{aligned}
+P(X_{i}=x_{1}....X_{n}=x_{n}) &= \prod_{i=1}^{n} \prod_{k=1}^{K} \pi_{k}N(x; \mu_{k}, \sigma^{2}_{k})
+\end{aligned}
+$$
+
+Now, with the help of EM algorithm we aims to obtain the maximum likelihood estimates of ($\mu_{k}, \sigma^{2}_{k}$) given the data set of observations $x_{1}, x_{2}, ......x_{n}$
+
+Intuitively, the latent variables $Z_{i}$ should help us find the MLE's. We first compute the posterior distribution of $Z_{i}$, \
+$$
+\begin{aligned}
+P(Z_{i}=k|X_{i}) & = \frac{P(X_{i}|Z_{i}=k), P(Z_{i}=k)}{P(X_{i})}\\
+                & = \frac{\pi_{k}N(x; \mu_{k}, \sigma^{2}_{k})}{\sum_{k=1}^{K} \pi_{k}N(x; \mu_{k}, \sigma^{2}_{k})}\\
+                & = \gamma_{Z_{i}}(K)
+\end{aligned}
+$$
+
+Now, by deriving the log-likelihood function of the normal distribution distribution with respect to $\mu_{k}$ we get:
+
+$$
+\begin{aligned}
+      \hat \mu_{k} & = \frac{\sum_{i=1}^{n}\gamma_{Z_{i}}(k)x_{i}}{\sum_{i=1}^{n}\gamma_{Z_{i}}(k)}\\
+              & = \frac{1}{N_{k}}\sum_{i=1}^{n} \gamma_{Z_{i}}(k) x_{i}
+\end{aligned}
+$$
+
+Therefore the $\hat \mu_{k}$ is the weighted average of data with weights $\gamma_{Z_{i}}(k)$. 
+
+Similarly, we can find the $\hat \sigma^{2}_{k}$ and we have, 
+$$
+\begin{aligned}
+           \hat \sigma^{2}_{k} & = \frac{1}{N_{k}}\sum_{i=1}^{n} \gamma_{Z_{i}}(k) (x_{i}-\mu_{k})^2
+\end{aligned}
+$$
+
+
+# Steps for EM Algorithm
+## E-Step:
+First we find the complete data likelihood\
+$Q(\theta|\hat{\theta}_{m}, X)=E[logL^{c}(\theta|X, Z)]$
+
+## M-Stem:
+Then we maximize the complete data likelihood in the parameter and update\
+$Q(\theta|\hat{\theta}_{m}, X)$ in $\theta$ and update.
+$\hat{\theta}_{m+1}=argmax Q(\theta|\hat{\theta}_{m}, X)$
+
+Repeate this untill convergence
+
+
+# Results
+The application of EM algorithm produces the following estimates for mean and standard deviation. \
+mean = 13.02413 \
+SD = 1.010988
+
+
+
+# Statistical Algorithm
+
+```{r}
+### Data
+x_right_censor = c(12.25, 14.06, 12.44, 11.57, 14.76, 12.66, 
+                   13.62, 11.68, 13.81, 13.87, 12.63, 13.92)
+length(x_right_censor)
+
+x_left_censor = c(14.03, 14.01, 12.69, 13.45, 14.89, 12.36, 13.08, 
+                  14.09, 12.73, 12.94, 14.91, 12.43, 14.42, 13.72)
+length(x_left_censor)
+
+x_interval_censor = data.frame('lower' = c(11.96, 13.03, 11.61, 12.22, 11.92,
+                                           12.96, 11.01, 13.79, 12.49, 13.14,
+                                           11.83, 12.81, 13.46, 11.25, 11.58,
+                                           13.69, 12.82, 12.78, 12.83),
+                               'upper' = c(12.49, 13.28, 13.08, 12.84, 12.37,
+                                           13.67, 11.85, 14.23, 13.31, 13.56,
+                                           13.63, 13.43, 13.82, 12.04, 12.08,
+                                           13.99, 12.98, 13.62, 14.74))
+
+### Functions
+Sx = function(x){
+  s = dnorm(x)/(1-pnorm(x))
+  return(s)
+}
+
+S1 = function(h, H){
+  s1 = (dnorm(h)-dnorm(H))/(pnorm(H)-pnorm(h))
+  return(s1)
+}
+
+S2 = function(h, H){
+  s2 = -(h*dnorm(h) - H*dnorm(H))/(pnorm(H)-pnorm(h))
+  return(s2)
+}
+
+Tx = function(x){
+  t = Sx(x)*(Sx(x) - x)
+  return(t)
+}
+
+T1 = function(h, H){
+  t1 = S1(h, H)^2 + S2(h, H)
+  return(t1)
+}
+
+### E step
+wB = function(xleft, mu, sig){
+  H = (xleft-mu)/sig
+  e = mu - sig*Sx(-H)
+  return(e)
+}
+
+wC = function(xright, mu, sig){
+  h = (xright-mu)/sig
+  e = mu + sig*Sx(h)
+  return(e)
+}
+
+wD = function(xinterval, mu, sig){
+  low = xinterval[,1]
+  up = xinterval[,2]
+  H = (up-mu)/sig
+  h = (low-mu)/sig
+  e = mu + sig*S1(h, H)
+  return(e)
+}
+
+
+### M step
+mu_hat = function(w1, w2, w3){
+  n1 = length(w1); n2 = length(w2); n3 = length(w3)
+  n = n1+n2+n3
+  w = (sum(w1)+sum(w2)+sum(w3))/n
+  return(w)
+}
+
+sig_hat = function(xleft, xright, xinterval, w1, w2, w3, mu_hat, sig_old){
+  # numerator
+  ns1 = sum((w1-mu_hat)^2); ns2 = sum((w2-mu_hat)^2); ns3 = sum((w3-mu_hat)^2)
+  num_sum = ns1+ns2+ns3
+  # H and h values
+  H_b = (xleft - mu_hat)/sig_old
+  h_c = (xright - mu_hat)/sig_old
+  H_d_up = (xinterval[,2] - mu_hat)/sig_old
+  h_d_low = (xinterval[,1] - mu_hat)/sig_old
+  # denominator
+  ds1= sum(Tx(-H_b)); ds2 = sum(Tx(h_c)); ds3 = sum(T1(h_d_low, H_d_up))
+  de_sum = ds1+ds2+ds3
+  # sigma square
+  var = num_sum/de_sum
+  return(sqrt(var))
+}
+
+
+### EM Implementation
+err = 1; tol = 1e-5; its = 1; maxits = 10000
+mu_old = 3; sig_old = 2
+
+while(err>tol & its<maxits){
+  wb = wB(x_left_censor, mu_old, sig_old)
+  wc = wC(x_right_censor, mu_old, sig_old)
+  wd = wD(x_interval_censor, mu_old, sig_old)
+  mu_new = mu_hat(wb, wc, wd)
+  sig_new = sig_hat(x_left_censor, x_right_censor, x_interval_censor,
+                    wb, wc, wd, 
+                    mu_new, sig_old)
+  err = max(abs(mu_new - mu_old), abs(sig_new - sig_old))
+  its = its+1
+  mu_old = mu_new; sig_old = sig_new
+}
+
+mu_new
+sig_new
+```
+
+#Contribution:
+Hongjin,Mahedi and Swarnita read the paper and understood the steps to be done.\newline
+Hongjin wrote the code .\newline
+Swarnita and Mahedi wrote the code individually and matched with Hongjin's.\newline
+Mahedi wrote the report.\newline
+Hongjin and Swarnita reviewed.\newline
+
